@@ -102,6 +102,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
 
     //************* BLOCKS ****************
 
+    @MemoMismatches
     public Rule Root() {
         return NodeSequence(
                 push(new RootNode()),
@@ -109,6 +110,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule Block() {
         return Sequence(
                 ZeroOrMore(BlankLine()),
@@ -126,6 +128,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule Para() {
         return NodeSequence(
                 // The Para Rule only tests for the presence of a following blank line, but does not consume it.
@@ -139,6 +142,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
 
     // vsch: #184 modified to only include trailing blank lines if there are more blocks for the blockquote following
     // otherwise don't include the blank lines, they are not part of the block quote
+    @MemoMismatches
     public Rule BlockQuote() {
         StringBuilderVar inner = new StringBuilderVar();
         StringBuilderVar optional = new StringBuilderVar();
@@ -165,6 +169,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule Verbatim() {
         StringBuilderVar text = new StringBuilderVar();
         StringBuilderVar line = new StringBuilderVar();
@@ -184,7 +189,8 @@ public class Parser extends BaseParser<Object> implements Extensions {
                 push(new VerbatimNode(text.getString()))
         );
     }
-    
+
+    @MemoMismatches
     public Rule FencedCodeBlock() {
         StringBuilderVar text = new StringBuilderVar();
         Var<Integer> markerLength = new Var<Integer>();
@@ -199,6 +205,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     @Cached
     public Rule CodeFence(Var<Integer> markerLength) {
         return Sequence(
@@ -211,7 +218,8 @@ public class Parser extends BaseParser<Object> implements Extensions {
                 Newline()
         );
     }
-    
+
+    @MemoMismatches
     public Rule HorizontalRule() {
         return NodeSequence(
                 NonindentSpace(),
@@ -222,16 +230,19 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule HorizontalRule(char c) {
         return Sequence(c, Sp(), c, Sp(), c, ZeroOrMore(Sp(), c));
     }
 
     //************* HEADINGS ****************
 
+    @MemoMismatches
     public Rule Heading() {
         return NodeSequence(FirstOf(AtxHeading(), SetextHeading()));
     }
 
+    @MemoMismatches
     public Rule AtxHeading() {
         return Sequence(
                 AtxStart(),
@@ -246,6 +257,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule AtxStart() {
         return Sequence(
                 FirstOf("######", "#####", "####", "###", "##", "#"),
@@ -253,6 +265,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule AtxInline() {
         return Sequence(
                 TestNot(Newline()),
@@ -272,6 +285,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
     //      defacto invisible [control] characters). If applicable, grep
     //      all such lines globally using the pattern "^--[-]*[\s\t]*$"
     //
+    @MemoMismatches
     public Rule SetextHeading() {
         return Sequence(
                 // test for successful setext heading before actually building it to reduce backtracking
@@ -281,6 +295,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
     }
 
     // vsch: #186 add isSetext flag to header node to distinguish header types
+    @MemoMismatches
     public Rule SetextHeading1() {
         return Sequence(
                 SetextInline(), push(new HeaderNode(1, popAsNode(), true)),
@@ -290,6 +305,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule SetextHeading2() {
         return Sequence(
                 SetextInline(), push(new HeaderNode(2, popAsNode(), true)),
@@ -299,6 +315,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule SetextInline() {
         return Sequence(TestNot(Endline()), Inline());
     }
@@ -358,7 +375,8 @@ public class Parser extends BaseParser<Object> implements Extensions {
     }
 
     //************** Definition Lists ************
-    
+
+    @MemoMismatches
     public Rule DefinitionList() {
         return NodeSequence(
                 // test for successful definition list match before actually building it to reduce backtracking
@@ -379,7 +397,8 @@ public class Parser extends BaseParser<Object> implements Extensions {
                 )
         );
     }
-    
+
+    @MemoMismatches
     public Rule DefListTerm() {
         return NodeSequence(
                 TestNot(Spacechar()),
@@ -390,7 +409,8 @@ public class Parser extends BaseParser<Object> implements Extensions {
                 Newline()
         );
     }
-    
+
+    @MemoMismatches
     public Rule DefTermInline() {
         return Sequence(
                 NotNewline(),
@@ -398,7 +418,8 @@ public class Parser extends BaseParser<Object> implements Extensions {
                 Inline()
         );
     }
-    
+
+    @MemoMismatches
     public Rule Definition() {
         SuperNodeCreator itemNodeCreator = new SuperNodeCreator() {
             public SuperNode create(Node child) {
@@ -407,13 +428,15 @@ public class Parser extends BaseParser<Object> implements Extensions {
         };
         return ListItem(DefListBullet(), itemNodeCreator);
     }
-    
+
+    @MemoMismatches
     public Rule DefListBullet() {
         return Sequence(NonindentSpace(), AnyOf(":~"), OneOrMore(Spacechar()));
     }
 
     //************* LISTS ****************
 
+    @MemoMismatches
     public Rule BulletList() {
         if (ext(TASKLISTITEMS)) {
             // #185 GFM style task list items [ ] open task, [x] closed task handlings
@@ -451,6 +474,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         }
     }
 
+    @MemoMismatches
     public Rule OrderedList() {
         SuperNodeCreator itemNodeCreator = new SuperNodeCreator() {
             public SuperNode create(Node child) {
@@ -467,6 +491,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     @Cached
     public Rule ListItem(Rule itemStart, SuperNodeCreator itemNodeCreator) {
         // for a simpler parser design we use a recursive parsing strategy for list items:
@@ -516,6 +541,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
 
     // vsch: #185 This handles the optional extension TASKLISTITEMS to parse and generate GFM task list styled items. These are
     // bullet items: * [ ] or * [x] , the space after the ] is not optional.
+    @MemoMismatches
     @Cached
     public Rule TaskListItem(Rule itemStart, SuperNodeTaskItemCreator itemNodeCreator) {
         // for a simpler parser design we use a recursive parsing strategy for list items:
@@ -567,14 +593,17 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule CrossedOut(Rule rule, StringBuilderVar block) {
         return Sequence(rule, appendCrossed(block));
     }
 
+    @MemoMismatches
     public Rule CrossedOutLessOne(Rule rule, StringBuilderVar block) {
         return Sequence(rule, appendCrossedLessOne(block));
     }
 
+    @MemoMismatches
     public Rule ListItemIndentedBlocks(StringBuilderVar block) {
         StringBuilderVar line = new StringBuilderVar();
         return Sequence(
@@ -608,6 +637,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule TestNotItem() {
         return TestNot(
                 FirstOf(new ArrayBuilder<Rule>()
@@ -617,7 +647,8 @@ public class Parser extends BaseParser<Object> implements Extensions {
                 )
         );
     }
-    
+
+    @MemoMismatches
     public Rule TestNotListItem() {
         return TestNot(
                 FirstOf(new ArrayBuilder<Rule>()
@@ -628,10 +659,12 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule Enumerator() {
         return Sequence(NonindentSpace(), OneOrMore(Digit()), '.', OneOrMore(Spacechar()));
     }
 
+    @MemoMismatches
     public Rule Bullet() {
         return Sequence(TestNot(HorizontalRule()), NonindentSpace(), AnyOf("+*-"), OneOrMore(Spacechar()));
     }
@@ -654,6 +687,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         return true;
     }
 
+    @MemoMismatches
     Node parseListBlock(StringBuilderVar block) {
         Context<Object> context = getContext();
         Node innerRoot = parseInternal(block);
@@ -663,6 +697,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         return withIndicesShifted(innerRoot, (Integer) context.getValueStack().pop());
     }
 
+    @MemoMismatches
     Node withIndicesShifted(Node node, int delta) {
         if (delta != 0) {
             ((AbstractNode) node).shiftIndices(delta);
@@ -716,6 +751,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
 
     //************* HTML BLOCK ****************
 
+    @MemoMismatches
     public Rule HtmlBlock() {
         return NodeSequence(
                 FirstOf(HtmlBlockInTags(), HtmlComment(), HtmlBlockSelfClosing()),
@@ -724,6 +760,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule HtmlBlockInTags() {
         StringVar tagName = new StringVar();
         return Sequence(
@@ -732,6 +769,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     @Cached
     public Rule HtmlTagBlock(StringVar tagName) {
         return Sequence(
@@ -746,21 +784,25 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule HtmlBlockSelfClosing() {
         StringVar tagName = new StringVar();
         return Sequence('<', Spn1(), DefinedHtmlTagName(tagName), Spn1(), ZeroOrMore(HtmlAttribute()), Optional('/'),
                 Spn1(), '>');
     }
 
+    @MemoMismatches
     public Rule HtmlBlockOpen(StringVar tagName) {
         return Sequence('<', Spn1(), DefinedHtmlTagName(tagName), Spn1(), ZeroOrMore(HtmlAttribute()), '>');
     }
 
+    @MemoMismatches
     @DontSkipActionsInPredicates
     public Rule HtmlBlockClose(StringVar tagName) {
         return Sequence('<', Spn1(), '/', OneOrMore(Alphanumeric()), match().equals(tagName.get()), Spn1(), '>');
     }
 
+    @MemoMismatches
     @Cached
     public Rule DefinedHtmlTagName(StringVar tagName) {
         return Sequence(
@@ -812,6 +854,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
 
     //************* INLINES ****************
 
+    @MemoMismatches
     public Rule Inlines() {
         return NodeSequence(
                 InlineOrIntermediateEndline(), push(new SuperNode(popAsNode())),
@@ -820,6 +863,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule InlineOrIntermediateEndline() {
         return FirstOf(
                 Sequence(TestNot(Endline()), Inline()),
@@ -835,10 +879,12 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule NonAutoLinkInline() {
         return FirstOf(NonAutoLink(), NonLinkInline());
     }
 
+    @MemoMismatches
     public Rule NonLinkInline() {
         return FirstOf(new ArrayBuilder<Rule>()
                 .add(plugins.getInlinePluginRules())
@@ -857,14 +903,17 @@ public class Parser extends BaseParser<Object> implements Extensions {
         return NodeSequence(FirstOf(LineBreak(), TerminalEndline(), NormalEndline()));
     }
 
+    @MemoMismatches
     public Rule LineBreak() {
         return Sequence("  ", NormalEndline(), poke(new SimpleNode(Type.Linebreak)));
     }
 
+    @MemoMismatches
     public Rule TerminalEndline() {
         return NodeSequence(Sp(), Newline(), Test(EOI), push(new TextNode("\n")));
     }
 
+    @MemoMismatches
     public Rule NormalEndline() {
         return Sequence(
                 Sp(), Newline(),
@@ -895,10 +944,12 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule CharLine(char c) {
         return FirstOf(NOrMore(c, 4), Sequence(Spacechar(), OneOrMore(c), Test(Spacechar())));
     }
-    
+
+    @MemoMismatches
     public Rule StrongOrEmph() {
         return Sequence(
                 Test(AnyOf("*_")),
@@ -906,15 +957,18 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule Emph() {
         return NodeSequence( FirstOf( EmphOrStrong("*"), EmphOrStrong("_") ) );
     }
 
+    @MemoMismatches
     public Rule Strong() {
         return NodeSequence( FirstOf( EmphOrStrong("**"), EmphOrStrong("__") ) );
     }
 
     // vsch: TODO: test for unclosed strikethrough sequence carrying through the isClosed attribute, as soon as I can figure out how
+    @MemoMismatches
     public Rule Strike() {
         // vsch: we need to preserve isClosed() attribute of the StrongEmphSuperNode, otherwise we can have
         // a strike sequence which is not closed and it makes it difficult to split out the lead-in/termination
@@ -925,6 +979,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     @Cached
     public Rule EmphOrStrong(String chars) {
         return Sequence(
@@ -951,7 +1006,8 @@ public class Parser extends BaseParser<Object> implements Extensions {
                 Optional(Sequence(EmphOrStrongClose(chars), setClosed()))
         );
     }
-    
+
+    @MemoMismatches
     public Rule EmphOrStrongOpen(String chars) {
         return Sequence(
                 TestNot(CharLine(chars.charAt(0))),
@@ -961,6 +1017,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     @Cached
     public Rule EmphOrStrongClose(String chars) {
         return Sequence(
@@ -1104,6 +1161,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
 
     //************* LINKS ****************
 
+    @MemoMismatches
     public Rule Image() {
         return NodeSequence(
                 '!', ImageAlt(),
@@ -1123,10 +1181,12 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule NonAutoLink() {
         return NodeSequence(Sequence(Label(), FirstOf(ExplicitLink(false), ReferenceLink(false))));
     }
 
+    @MemoMismatches
     @Cached
     public Rule ExplicitLink(boolean image) {
         return Sequence(
@@ -1141,6 +1201,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule ReferenceLink(boolean image) {
         return Sequence(
                 FirstOf(
@@ -1160,6 +1221,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     @Cached
     public Rule LinkSource() {
         StringBuilderVar url = new StringBuilderVar();
@@ -1179,10 +1241,12 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule LinkTitle() {
         return FirstOf(LinkTitle('\''), LinkTitle('"'));
     }
 
+    @MemoMismatches
     public Rule LinkTitle(char delimiter) {
         return Sequence(
                 delimiter,
@@ -1192,6 +1256,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule AutoLink() {
         return Sequence(
                 ext(AUTOLINKS) ? Optional('<') : Ch('<'),
@@ -1200,6 +1265,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule WikiLink() {
         return Sequence(
             "[[",
@@ -1209,6 +1275,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule AutoLinkUrl() {
         return Sequence(
                 Sequence(OneOrMore(Letter()), "://", AutoLinkEnd()),
@@ -1216,6 +1283,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule AutoLinkEmail() {
         return Sequence(
                 Sequence(OneOrMore(FirstOf(Alphanumeric(), AnyOf("-+_."))), '@', AutoLinkEnd()),
@@ -1223,6 +1291,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule AutoLinkEnd() {
         return OneOrMore(
                 TestNot(Newline()),
@@ -1241,6 +1310,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
     //************* REFERENCE ****************
 
     // can't treat labels the same as the image alt since the image alt should be able to empty.
+    @MemoMismatches
     public Rule ImageAlt(){
         return Sequence(
                 '[',
@@ -1251,6 +1321,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule Label() {
         return Sequence(
                 '[',
@@ -1262,6 +1333,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
     }
 
     // here we exclude the EOL at the end from the node's text range
+    @MemoMismatches
     public Rule Reference() {
         return Sequence(
                 ReferenceNoEOL(),
@@ -1269,6 +1341,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule ReferenceNoEOL() {
         Var<ReferenceNode> ref = new Var<ReferenceNode>();
         return NodeSequence(
@@ -1283,6 +1356,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule RefSrc(Var<ReferenceNode> ref) {
         return FirstOf(
                 Sequence('<', RefSrcContent(ref), '>'),
@@ -1290,14 +1364,17 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule RefSrcContent(Var<ReferenceNode> ref) {
         return Sequence(OneOrMore(TestNot('>'), Nonspacechar()), ref.get().setUrl(match()));
     }
 
+    @MemoMismatches
     public Rule RefTitle(Var<ReferenceNode> ref) {
         return FirstOf(RefTitle('\'', '\'', ref), RefTitle('"', '"', ref), RefTitle('(', ')', ref));
     }
 
+    @MemoMismatches
     public Rule RefTitle(char open, char close, Var<ReferenceNode> ref) {
         return Sequence(
                 open,
@@ -1309,6 +1386,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
 
     //************* CODE ****************
 
+    @MemoMismatches
     public Rule Code() {
         return NodeSequence(
                 Test('`'),
@@ -1322,6 +1400,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule Code(Rule ticks) {
         return Sequence(
                 ticks, Sp(),
@@ -1338,12 +1417,14 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule Ticks(int count) {
         return Sequence(repeat('`', count), TestNot('`'));
     }
 
     //************* RAW HTML ****************
 
+    @MemoMismatches
     public Rule InlineHtml() {
         return NodeSequence(
                 FirstOf(HtmlComment(), HtmlTag()),
@@ -1351,15 +1432,18 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule HtmlComment() {
         return Sequence("<!--", ZeroOrMore(TestNot("-->"), ANY), "-->");
     }
 
+    @MemoMismatches
     public Rule HtmlTag() {
         return Sequence('<', Spn1(), Optional('/'), OneOrMore(Alphanumeric()), Spn1(), ZeroOrMore(HtmlAttribute()),
                 Optional('/'), Spn1(), '>');
     }
 
+    @MemoMismatches
     public Rule HtmlAttribute() {
         return Sequence(
                 OneOrMore(FirstOf(Alphanumeric(), '-', '_')),
@@ -1369,6 +1453,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule Quoted() {
         return FirstOf(
                 Sequence('"', ZeroOrMore(TestNot('"'), ANY), '"'),
@@ -1378,10 +1463,12 @@ public class Parser extends BaseParser<Object> implements Extensions {
 
     //************* LINES ****************
 
+    @MemoMismatches
     public Rule BlankLine() {
         return Sequence(Sp(), Newline());
     }
 
+    @MemoMismatches
     public Rule Line(StringBuilderVar sb) {
         return Sequence(
                 Sequence(ZeroOrMore(NotNewline(), ANY), Newline()),
@@ -1391,6 +1478,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
 
     //************* ENTITIES ****************
 
+    @MemoMismatches
     public Rule Entity() {
         return NodeSequence(
                 Sequence('&', FirstOf(HexEntity(), DecEntity(), CharEntity()), ';'),
@@ -1398,40 +1486,49 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule HexEntity() {
         return Sequence('#', IgnoreCase('x'), OneOrMore(FirstOf(Digit(), CharRange('a', 'f'), CharRange('A', 'F'))));
     }
 
+    @MemoMismatches
     public Rule DecEntity() {
         return Sequence('#', OneOrMore(Digit()));
     }
 
+    @MemoMismatches
     public Rule CharEntity() {
         return OneOrMore(Alphanumeric());
     }
 
     //************* BASICS ****************
 
+    @MemoMismatches
     public Rule Str() {
         return NodeSequence(OneOrMore(NormalChar()), push(new TextNode(match())));
     }
 
+    @MemoMismatches
     public Rule Space() {
         return NodeSequence(OneOrMore(Spacechar()), push(new TextNode(" ")));
     }
 
+    @MemoMismatches
     public Rule Spn1() {
         return Sequence(Sp(), Optional(Newline(), Sp()));
     }
 
+    @MemoMismatches
     public Rule Sp() {
         return ZeroOrMore(Spacechar());
     }
 
+    @MemoMismatches
     public Rule Spacechar() {
         return AnyOf(" \t");
     }
 
+    @MemoMismatches
     public Rule Nonspacechar() {
         return Sequence(TestNot(Spacechar()), NotNewline(), ANY);
     }
@@ -1441,6 +1538,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         return Sequence(TestNot(SpecialChar()), TestNot(Spacechar()), NotNewline(), ANY);
     }
 
+    @MemoMismatches
     public Rule EscapedChar() {
         // Previously all "*_`&[]<>!#\\'\".+-(){}:|~" were treated as escapable
         // only escape special characters as per John Gruber's list: "\\`*_{}[]()#+-.!" (plus <>&: for HTML escapes)
@@ -1448,10 +1546,12 @@ public class Parser extends BaseParser<Object> implements Extensions {
         return NodeSequence('\\', EscapableChar(), push(new SpecialTextNode(match())));
     }
 
+    @MemoMismatches
     public Rule Symbol() {
         return NodeSequence(SpecialChar(), push(new SpecialTextNode(match())));
     }
 
+    @MemoMismatches
     public Rule SpecialChar() {
         String chars = "*_`&[]<>!#\\";
         if (ext(QUOTES)) {
@@ -1482,6 +1582,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         return AnyOf(chars);
     }
 
+    @MemoMismatches
     // make these as per john grubber's original list + <>& + selected extensions
     public Rule EscapableChar() {
         // John Gruber's list: "\\`*_{}[]()#+-.!"
@@ -1514,36 +1615,44 @@ public class Parser extends BaseParser<Object> implements Extensions {
         return AnyOf(chars);
     }
 
+    @MemoMismatches
     public Rule NotNewline() {
         return TestNot(AnyOf("\n\r"));
     }
-    
+
+    @MemoMismatches
     public Rule Newline() {
         return FirstOf('\n', Sequence('\r', Optional('\n')));
     }
 
+    @MemoMismatches
     public Rule NonindentSpace() {
         return FirstOf("   ", "  ", " ", EMPTY);
     }
 
+    @MemoMismatches
     public Rule Indent() {
         return FirstOf('\t', "    ");
     }
 
+    @MemoMismatches
     public Rule Alphanumeric() {
         return FirstOf(Letter(), Digit());
     }
 
+    @MemoMismatches
     public Rule Letter() {
         return FirstOf(CharRange('a', 'z'), CharRange('A', 'Z'));
     }
 
+    @MemoMismatches
     public Rule Digit() {
         return CharRange('0', '9');
     }
 
     //************* ABBREVIATIONS ****************
 
+    @MemoMismatches
     public Rule Abbreviation() {
         Var<AbbreviationNode> node = new Var<AbbreviationNode>();
         return NodeSequence(
@@ -1553,6 +1662,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule AbbreviationText(Var<AbbreviationNode> node) {
         return Sequence(
                 NodeSequence(
@@ -1565,6 +1675,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
 
     //************* TABLES ****************
 
+    @MemoMismatches
     public Rule Table() {
         Var<TableNode> node = new Var<TableNode>();
         return NodeSequence(
@@ -1591,6 +1702,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule TableCaption() {
         return Sequence(
                 '[', Sp(),
@@ -1600,6 +1712,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule CaptionStart() {
         return NodeSequence(
                 push(new TableCaptionNode()),
@@ -1607,6 +1720,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule CaptionInline() {
         return Sequence(
                 TestNot(Newline()),
@@ -1615,6 +1729,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule TableDivider(Var<TableNode> tableNode) {
         Var<Boolean> pipeSeen = new Var<Boolean>(Boolean.FALSE);
         return Sequence(
@@ -1626,6 +1741,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
     }
 
     // vsch: TableColumnNode was not setting source range
+    @MemoMismatches
     public Rule TableColumn(Var<TableNode> tableNode, Var<Boolean> pipeSeen) {
         Var<TableColumnNode> node = new Var<TableColumnNode>(new TableColumnNode());
         return Sequence(
@@ -1642,6 +1758,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule TableRow() {
         Var<Boolean> leadingPipe = new Var<Boolean>(Boolean.FALSE);
         return NodeSequence(
@@ -1656,6 +1773,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
 
     // vsch: #183 Exclude the trailing || from TableCellNode node, leading ones are not included, it makes it more intuitive
     // that the TableCell will include only the text of the cell.
+    @MemoMismatches
     public Rule TableCell() {
         return Sequence(
                 NodeSequence(
@@ -1675,6 +1793,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
 
     //************* SMARTS ****************
 
+    @MemoMismatches
     public Rule Smarts() {
         return NodeSequence(
                 FirstOf(
@@ -1688,6 +1807,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
 
     //************* QUOTES ****************
 
+    @MemoMismatches
     public Rule SingleQuoted() {
         return NodeSequence(
                 !Character.isLetter(getContext().getInputBuffer().charAt(getContext().getCurrentIndex() - 1)),
@@ -1698,10 +1818,12 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule SingleQuoteEnd() {
         return Sequence('\'', TestNot(Alphanumeric()));
     }
 
+    @MemoMismatches
     public Rule DoubleQuoted() {
         return NodeSequence(
                 '"',
@@ -1711,6 +1833,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
+    @MemoMismatches
     public Rule DoubleAngleQuoted() {
         return NodeSequence(
                 "<<",
@@ -1728,11 +1851,11 @@ public class Parser extends BaseParser<Object> implements Extensions {
     }
 
     //************* HELPERS ****************
-    
+
     public Rule NOrMore(char c, int n) {
         return Sequence(repeat(c, n), ZeroOrMore(c));
     }
-    
+
     public Rule NodeSequence(Object... nodeRules) {
         return Sequence(
                 push(getContext().getCurrentIndex()),
@@ -1740,7 +1863,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
                 setIndices()
         );
     }
-    
+
     public boolean setIndices() {
         AbstractNode node = (AbstractNode) peek();
         node.setStartIndex((Integer)pop(1));

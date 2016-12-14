@@ -205,7 +205,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     @Cached
     public Rule CodeFence(Var<Integer> markerLength) {
         return Sequence(
@@ -230,7 +229,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     public Rule HorizontalRule(char c) {
         return Sequence(c, Sp(), c, Sp(), c, ZeroOrMore(Sp(), c));
     }
@@ -491,7 +489,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     @Cached
     public Rule ListItem(Rule itemStart, SuperNodeCreator itemNodeCreator) {
         // for a simpler parser design we use a recursive parsing strategy for list items:
@@ -541,7 +538,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
 
     // vsch: #185 This handles the optional extension TASKLISTITEMS to parse and generate GFM task list styled items. These are
     // bullet items: * [ ] or * [x] , the space after the ] is not optional.
-    @MemoMismatches
     @Cached
     public Rule TaskListItem(Rule itemStart, SuperNodeTaskItemCreator itemNodeCreator) {
         // for a simpler parser design we use a recursive parsing strategy for list items:
@@ -593,17 +589,14 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     public Rule CrossedOut(Rule rule, StringBuilderVar block) {
         return Sequence(rule, appendCrossed(block));
     }
 
-    @MemoMismatches
     public Rule CrossedOutLessOne(Rule rule, StringBuilderVar block) {
         return Sequence(rule, appendCrossedLessOne(block));
     }
 
-    @MemoMismatches
     public Rule ListItemIndentedBlocks(StringBuilderVar block) {
         StringBuilderVar line = new StringBuilderVar();
         return Sequence(
@@ -687,7 +680,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         return true;
     }
 
-    @MemoMismatches
     Node parseListBlock(StringBuilderVar block) {
         Context<Object> context = getContext();
         Node innerRoot = parseInternal(block);
@@ -697,7 +689,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         return withIndicesShifted(innerRoot, (Integer) context.getValueStack().pop());
     }
 
-    @MemoMismatches
     Node withIndicesShifted(Node node, int delta) {
         if (delta != 0) {
             ((AbstractNode) node).shiftIndices(delta);
@@ -769,7 +760,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     @Cached
     public Rule HtmlTagBlock(StringVar tagName) {
         return Sequence(
@@ -791,18 +781,15 @@ public class Parser extends BaseParser<Object> implements Extensions {
                 Spn1(), '>');
     }
 
-    @MemoMismatches
     public Rule HtmlBlockOpen(StringVar tagName) {
         return Sequence('<', Spn1(), DefinedHtmlTagName(tagName), Spn1(), ZeroOrMore(HtmlAttribute()), '>');
     }
 
-    @MemoMismatches
     @DontSkipActionsInPredicates
     public Rule HtmlBlockClose(StringVar tagName) {
         return Sequence('<', Spn1(), '/', OneOrMore(Alphanumeric()), match().equals(tagName.get()), Spn1(), '>');
     }
 
-    @MemoMismatches
     @Cached
     public Rule DefinedHtmlTagName(StringVar tagName) {
         return Sequence(
@@ -870,7 +857,7 @@ public class Parser extends BaseParser<Object> implements Extensions {
                 Sequence(Endline(), Test(Inline()))
         );
     }
-    
+
     @MemoMismatches
     public Rule Inline() {
         return Sequence(
@@ -944,7 +931,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     public Rule CharLine(char c) {
         return FirstOf(NOrMore(c, 4), Sequence(Spacechar(), OneOrMore(c), Test(Spacechar())));
     }
@@ -979,7 +965,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     @Cached
     public Rule EmphOrStrong(String chars) {
         return Sequence(
@@ -1007,7 +992,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     public Rule EmphOrStrongOpen(String chars) {
         return Sequence(
                 TestNot(CharLine(chars.charAt(0))),
@@ -1017,7 +1001,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     @Cached
     public Rule EmphOrStrongClose(String chars) {
         return Sequence(
@@ -1186,7 +1169,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         return NodeSequence(Sequence(Label(), FirstOf(ExplicitLink(false), ReferenceLink(false))));
     }
 
-    @MemoMismatches
     @Cached
     public Rule ExplicitLink(boolean image) {
         return Sequence(
@@ -1201,7 +1183,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     public Rule ReferenceLink(boolean image) {
         return Sequence(
                 FirstOf(
@@ -1221,7 +1202,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     @Cached
     public Rule LinkSource() {
         StringBuilderVar url = new StringBuilderVar();
@@ -1246,7 +1226,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         return FirstOf(LinkTitle('\''), LinkTitle('"'));
     }
 
-    @MemoMismatches
     public Rule LinkTitle(char delimiter) {
         return Sequence(
                 delimiter,
@@ -1356,7 +1335,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     public Rule RefSrc(Var<ReferenceNode> ref) {
         return FirstOf(
                 Sequence('<', RefSrcContent(ref), '>'),
@@ -1364,17 +1342,14 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     public Rule RefSrcContent(Var<ReferenceNode> ref) {
         return Sequence(OneOrMore(TestNot('>'), Nonspacechar()), ref.get().setUrl(match()));
     }
 
-    @MemoMismatches
     public Rule RefTitle(Var<ReferenceNode> ref) {
         return FirstOf(RefTitle('\'', '\'', ref), RefTitle('"', '"', ref), RefTitle('(', ')', ref));
     }
 
-    @MemoMismatches
     public Rule RefTitle(char open, char close, Var<ReferenceNode> ref) {
         return Sequence(
                 open,
@@ -1400,7 +1375,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     public Rule Code(Rule ticks) {
         return Sequence(
                 ticks, Sp(),
@@ -1417,7 +1391,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     public Rule Ticks(int count) {
         return Sequence(repeat('`', count), TestNot('`'));
     }
@@ -1468,7 +1441,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         return Sequence(Sp(), Newline());
     }
 
-    @MemoMismatches
     public Rule Line(StringBuilderVar sb) {
         return Sequence(
                 Sequence(ZeroOrMore(NotNewline(), ANY), Newline()),
@@ -1582,8 +1554,8 @@ public class Parser extends BaseParser<Object> implements Extensions {
         return AnyOf(chars);
     }
 
-    @MemoMismatches
     // make these as per john grubber's original list + <>& + selected extensions
+    @MemoMismatches
     public Rule EscapableChar() {
         // John Gruber's list: "\\`*_{}[]()#+-.!"
         String chars = "\\`*_{}[]()#+-.!&<>";
@@ -1615,37 +1587,30 @@ public class Parser extends BaseParser<Object> implements Extensions {
         return AnyOf(chars);
     }
 
-    @MemoMismatches
     public Rule NotNewline() {
         return TestNot(AnyOf("\n\r"));
     }
 
-    @MemoMismatches
     public Rule Newline() {
         return FirstOf('\n', Sequence('\r', Optional('\n')));
     }
 
-    @MemoMismatches
     public Rule NonindentSpace() {
         return FirstOf("   ", "  ", " ", EMPTY);
     }
 
-    @MemoMismatches
     public Rule Indent() {
         return FirstOf('\t', "    ");
     }
 
-    @MemoMismatches
     public Rule Alphanumeric() {
         return FirstOf(Letter(), Digit());
     }
 
-    @MemoMismatches
     public Rule Letter() {
         return FirstOf(CharRange('a', 'z'), CharRange('A', 'Z'));
     }
 
-    @MemoMismatches
     public Rule Digit() {
         return CharRange('0', '9');
     }
@@ -1729,7 +1694,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
         );
     }
 
-    @MemoMismatches
     public Rule TableDivider(Var<TableNode> tableNode) {
         Var<Boolean> pipeSeen = new Var<Boolean>(Boolean.FALSE);
         return Sequence(
@@ -1741,7 +1705,6 @@ public class Parser extends BaseParser<Object> implements Extensions {
     }
 
     // vsch: TableColumnNode was not setting source range
-    @MemoMismatches
     public Rule TableColumn(Var<TableNode> tableNode, Var<Boolean> pipeSeen) {
         Var<TableColumnNode> node = new Var<TableColumnNode>(new TableColumnNode());
         return Sequence(
